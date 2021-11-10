@@ -1,0 +1,75 @@
+import plantas.*
+import parcelas.*
+import inta.*
+
+describe "tests" {
+	const menta1 = new Menta(anioDeObtencion = 2008, altura = 1)
+	const menta2 = new Menta(anioDeObtencion = 2003, altura = 0.3)
+	const soja = new Soja(anioDeObtencion = 2009, altura = 0.6)
+	const quinoa1 = new Quinoa(anioDeObtencion = 2010, altura = 0.5, cantidadDeHorasToleradas = 12)
+	const quinoa2 = new Quinoa(anioDeObtencion = 2001, altura = 1, cantidadDeHorasToleradas = 9)
+	
+	const sojaTrans = new SojaTransgenica(anioDeObtencion = 2009, altura = 1.7)
+	const hierbabuena = new Hierbabuena(anioDeObtencion = 2008, altura = 1)
+	
+	const sojaPlantada = new Soja(anioDeObtencion = 2009, altura = 1)
+	const parcelaEco = new ParcelaEcologica(largo = 1, ancho = 20, horasDeSol = 8, plantas = [sojaPlantada, sojaPlantada, sojaPlantada, sojaPlantada])
+	
+	const parcelaIndu = new ParcelaIndustrial(largo = 5, ancho = 20, horasDeSol = 9, plantas = [sojaPlantada, sojaTrans, menta1])
+	
+	const parcelaEco2 = new ParcelaEcologica(largo = 10, ancho = 15, horasDeSol = 5, plantas = [sojaPlantada, sojaPlantada, sojaPlantada, quinoa2, quinoa1, menta2])
+	const parcelaIndu2 = new ParcelaIndustrial(largo = 7, ancho = 30, horasDeSol = 9, plantas = [sojaPlantada, sojaTrans, menta1, sojaTrans, quinoa2,  menta2])
+	
+
+test "plantas" {
+	assert.that(menta1.daSemillas())
+	assert.equals(3, menta1.espacioQueOcupa())
+	assert.notThat(menta2.daSemillas())
+	assert.equals(0.9, menta2.espacioQueOcupa())
+	
+	assert.equals(7, soja.horasDeSolToleradas())
+	assert.notThat(soja.daSemillas())
+	assert.equals(0.3, soja.espacioQueOcupa())
+	
+	assert.that(quinoa1.daSemillas())
+	assert.that(quinoa2.daSemillas())
+}
+
+test "variedades" {
+	assert.notThat(sojaTrans.daSemillas())
+	assert.equals(6, hierbabuena.espacioQueOcupa())
+}
+
+test "parcelas" {
+	assert.equals(4, parcelaEco.plantasMaximas())
+	assert.notThat(parcelaEco.tieneComplicaciones())
+	
+	assert.throwsExceptionWithMessage("No se puede plantar en esta parcela", {parcelaEco.plantar(sojaPlantada)})
+}
+
+test "parcelas ideales" {
+	assert.that(menta2.esParcelaIdeal(parcelaIndu))
+	assert.notThat(quinoa1.esParcelaIdeal(parcelaIndu))
+	assert.that(sojaPlantada.esParcelaIdeal(parcelaIndu))
+	assert.notThat(sojaTrans.esParcelaIdeal(parcelaIndu))
+}
+
+test "asociacion de plantas" {
+	assert.that(parcelaEco.seAsociaBien(menta1))
+	assert.notThat(parcelaIndu.seAsociaBien(quinoa1))
+}
+
+test "estadísticas del INTA" {
+	inta.agregarParcela(parcelaEco)
+	inta.agregarParcela(parcelaIndu)
+	inta.agregarParcela(parcelaEco2)
+	inta.agregarParcela(parcelaIndu2)
+	
+	assert.equals(4.75, inta.promedioDePlantas())
+	
+	assert.equals(0, parcelaIndu2.plantasBienAsociadas())
+	assert.equals(3, parcelaEco2.plantasBienAsociadas())
+	
+	assert.that(inta.parcelaMasAutosustentable() == parcelaEco2)
+}
+}
